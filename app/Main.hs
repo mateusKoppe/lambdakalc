@@ -1,7 +1,7 @@
-module Main where 
+module Main where
 
+import Interpreter
 import Lexer
 import Parser
-import Interpreter
 
 main = getContents >>= print . eval . parser . lexer

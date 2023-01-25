@@ -10,7 +10,10 @@ import Lexer
 
 %token
     num         { TokenNum $$ }
-    '+'         { TokenAdd }
+    '+'         { TokenPlus }
+    '-'         { TokenLess }
+    '*'         { TokenTimes }
+    '/'         { TokenDiv }
     "&&"        { TokenAnd }
     "=="        { TokenEq }
     true        { TokenTrue }
@@ -39,7 +42,10 @@ Exp     : num                        { Num $1 }
         | var                        { Var $1 }
         | false                      { BFalse }
         | true                       { BTrue }
-        | Exp '+' Exp                { Add $1 $3 }
+        | Exp '+' Exp                { Plus $1 $3 }
+        | Exp '-' Exp                { Less $1 $3 }
+        | Exp '*' Exp                { Times $1 $3 }
+        | Exp '/' Exp                { Div $1 $3 }
         | Exp "&&" Exp               { And $1 $3 }
         | if Exp then Exp else Exp   { If $2 $4 $6 }
         | '\\' var ':' Type "->" Exp { Lam $2 $4 $6 }

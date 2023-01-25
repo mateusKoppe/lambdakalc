@@ -9,7 +9,10 @@ subst x n b@(Var v) =
     else b
 subst x n (Lam v t b) = Lam v t (subst x n b)
 subst x n (App e1 e2) = App (subst x n e1) (subst x n e2)
-subst x n (Add e1 e2) = Add (subst x n e1) (subst x n e2)
+subst x n (Plus e1 e2) = Plus (subst x n e1) (subst x n e2)
+subst x n (Less e1 e2) = Less (subst x n e1) (subst x n e2)
+subst x n (Times e1 e2) = Times (subst x n e1) (subst x n e2)
+subst x n (Div e1 e2) = Div (subst x n e1) (subst x n e2)
 subst x n (And e1 e2) = And (subst x n e1) (subst x n e2)
 subst x n (If e e1 e2) = If (subst x n e) (subst x n e1) (subst x n e2)
 subst x n (Paren e) = Paren (subst x n e)
@@ -24,13 +27,38 @@ isvalue (Lam _ _ _) = True
 isvalue _ = False
 
 step :: Expr -> Maybe Expr
-step (Add (Num n1) (Num n2)) = Just (Num (n1 + n2))
-step (Add (Num n1) e2) = case step e2 of
-  Just e2' -> Just (Add (Num n1) e2')
+step (Plus (Num n1) (Num n2)) = Just (Num (n1 + n2))
+step (Plus (Num n1) e2) = case step e2 of
+  Just e2' -> Just (Plus (Num n1) e2')
   _ -> Nothing
-step (Add e1 e2) = case step e1 of
-  Just e1' -> Just (Add e1' e2)
+step (Plus e1 e2) = case step e1 of
+  Just e1' -> Just (Plus e1' e2)
   _ -> Nothing
+
+step (Less (Num n1) (Num n2)) = Just (Num (n1 - n2))
+step (Less (Num n1) e2) = case step e2 of
+  Just e2' -> Just (Less (Num n1) e2')
+  _ -> Nothing
+step (Less e1 e2) = case step e1 of
+  Just e1' -> Just (Less e1' e2)
+  _ -> Nothing
+
+step (Times (Num n1) (Num n2)) = Just (Num (n1 * n2))
+step (Times (Num n1) e2) = case step e2 of
+  Just e2' -> Just (Times (Num n1) e2')
+  _ -> Nothing
+step (Times e1 e2) = case step e1 of
+  Just e1' -> Just (Times e1' e2)
+  _ -> Nothing
+
+step (Div (Num n1) (Num n2)) = Just (Num (n1 / n2))
+step (Div (Num n1) e2) = case step e2 of
+  Just e2' -> Just (Div (Num n1) e2')
+  _ -> Nothing
+step (Div e1 e2) = case step e1 of
+  Just e1' -> Just (Div e1' e2)
+  _ -> Nothing
+
 step (And BTrue e2) = Just e2
 step (And BFalse _) = Just BFalse
 step (And e1 e2) = case step e1 of

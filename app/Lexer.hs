@@ -11,8 +11,11 @@ data Ty
 data Expr
   = BTrue
   | BFalse
-  | Num Int
-  | Add Expr Expr
+  | Num Double
+  | Plus Expr Expr
+  | Less Expr Expr
+  | Times Expr Expr
+  | Div Expr Expr
   | And Expr Expr
   | If Expr Expr Expr
   | Var String
@@ -25,8 +28,11 @@ data Expr
 data Token
   = TokenTrue
   | TokenFalse
-  | TokenNum Int
-  | TokenAdd
+  | TokenNum Double
+  | TokenPlus
+  | TokenLess
+  | TokenTimes
+  | TokenDiv
   | TokenAnd
   | TokenIf
   | TokenThen
@@ -47,7 +53,10 @@ isToken c = elem c "->&|="
 
 lexer :: String -> [Token]
 lexer [] = []
-lexer ('+' : cs) = TokenAdd : lexer cs
+lexer ('+' : cs) = TokenPlus : lexer cs
+lexer ('-' : cs) = TokenLess : lexer cs
+lexer ('*' : cs) = TokenTimes : lexer cs
+lexer ('/' : cs) = TokenDiv : lexer cs
 lexer ('\\' : cs) = TokenLam : lexer cs
 lexer (':' : cs) = TokenColon : lexer cs
 lexer ('(' : cs) = TokenLParen : lexer cs
