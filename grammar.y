@@ -15,6 +15,7 @@ import Lexer
     '*'         { TokenTimes }
     '/'         { TokenDiv }
     "&&"        { TokenAnd }
+    '='         { TokenAssign }
     "=="        { TokenEq }
     true        { TokenTrue }
     false       { TokenFalse }
@@ -22,6 +23,7 @@ import Lexer
     then        { TokenThen }
     else        { TokenElse }
     var         { TokenVar $$ }
+    let         { TokenLet }
     '\\'        { TokenLam }
     ':'         { TokenColon }
     "->"        { TokenArrow }
@@ -37,6 +39,8 @@ import Lexer
 %left "=="
 
 %% 
+Statement : Exp { [App $1] }
+          | Exp Statement { $1 : $2 }
 
 Exp     : num                        { Num $1 }
         | var                        { Var $1 }
@@ -49,9 +53,9 @@ Exp     : num                        { Num $1 }
         | Exp "&&" Exp               { And $1 $3 }
         | if Exp then Exp else Exp   { If $2 $4 $6 }
         | '\\' var ':' Type "->" Exp { Lam $2 $4 $6 }
-        | Exp Exp                    { App $1 $2 }
         | '(' Exp ')'                { Paren $2 }
         | Exp "==" Exp               { Eq $1 $3 }
+        | let var '=' Exp            { Let $2 $4 }
 
 Type    : Bool                       { TBool }
         | Number                     { TNum }

@@ -1,7 +1,7 @@
 module Main where
 
-import Interpreter
 import Lexer
 import Parser
+import Runtime
 
-main = getContents >>= print . eval . parser . lexer
+main   = getContents >>= print . run . parser . lexer

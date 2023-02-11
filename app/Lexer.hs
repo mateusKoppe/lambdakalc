@@ -7,6 +7,8 @@ data Ty
   | TNum
   | TFun Ty Ty
   deriving (Show, Eq)
+  
+type Statement = [Expr]
 
 data Expr
   = BTrue
@@ -20,9 +22,10 @@ data Expr
   | If Expr Expr Expr
   | Var String
   | Lam String Ty Expr
-  | App Expr Expr
+  | App Expr
   | Paren Expr
   | Eq Expr Expr
+  | Let String Expr
   deriving (Show, Eq)
 
 data Token
@@ -46,6 +49,8 @@ data Token
   | TokenBoolean
   | TokenNumber
   | TokenEq
+  | TokenAssign
+  | TokenLet
   deriving (Show)
 
 isToken :: Char -> Bool
@@ -54,6 +59,8 @@ isToken c = elem c "->&|="
 lexer :: String -> [Token]
 lexer [] = []
 lexer ('+' : cs) = TokenPlus : lexer cs
+lexer ('=' : '=': cs) = TokenEq : lexer cs
+lexer ('=': cs) = TokenAssign : lexer cs
 lexer ('-' : '>': cs) = TokenArrow : lexer cs
 lexer ('-' : cs) = TokenLess : lexer cs
 lexer ('*' : cs) = TokenTimes : lexer cs
@@ -76,6 +83,7 @@ lexNum cs = case span isDigit cs of
 lexKW :: String -> [Token]
 lexKW cs = case span isAlpha cs of
   ("true", rest) -> TokenTrue : lexer rest
+  ("let", rest) -> TokenLet : lexer rest
   ("false", rest) -> TokenFalse : lexer rest
   ("if", rest) -> TokenIf : lexer rest
   ("then", rest) -> TokenThen : lexer rest
@@ -87,5 +95,4 @@ lexKW cs = case span isAlpha cs of
 lexSymbol :: String -> [Token]
 lexSymbol cs = case span isToken cs of
   ("&&", rest) -> TokenAnd : lexer rest
-  ("==", rest) -> TokenEq : lexer rest
   _ -> error "Lexical error: símbolo inválido!"
