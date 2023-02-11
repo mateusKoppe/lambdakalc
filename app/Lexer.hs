@@ -19,6 +19,7 @@ data Expr
   | Times Expr Expr
   | Div Expr Expr
   | And Expr Expr
+  | Or Expr Expr
   | If Expr Expr Expr
   | Var String
   | Lam String Ty Expr
@@ -26,6 +27,7 @@ data Expr
   | Paren Expr
   | Eq Expr Expr
   | Let String Expr
+  | Callable String Expr
   deriving (Show, Eq)
 
 data Token
@@ -37,6 +39,7 @@ data Token
   | TokenTimes
   | TokenDiv
   | TokenAnd
+  | TokenOr
   | TokenIf
   | TokenThen
   | TokenElse
@@ -59,6 +62,8 @@ isToken c = elem c "->&|="
 lexer :: String -> [Token]
 lexer [] = []
 lexer ('+' : cs) = TokenPlus : lexer cs
+lexer ('|' : '|': cs) = TokenOr : lexer cs
+lexer ('&' : '&': cs) = TokenAnd : lexer cs
 lexer ('=' : '=': cs) = TokenEq : lexer cs
 lexer ('=': cs) = TokenAssign : lexer cs
 lexer ('-' : '>': cs) = TokenArrow : lexer cs
@@ -73,7 +78,6 @@ lexer (c : cs)
   | isSpace c = lexer cs
   | isDigit c = lexNum (c : cs)
   | isAlpha c = lexKW (c : cs)
-  | isToken c = lexSymbol (c : cs)
 lexer _ = error "Lexical error: caracter inválido!"
 
 lexNum :: String -> [Token]
@@ -91,8 +95,3 @@ lexKW cs = case span isAlpha cs of
   ("Bool", rest) -> TokenBoolean : lexer rest
   ("Number", rest) -> TokenNumber : lexer rest
   (var, rest) -> TokenVar var : lexer rest
-
-lexSymbol :: String -> [Token]
-lexSymbol cs = case span isToken cs of
-  ("&&", rest) -> TokenAnd : lexer rest
-  _ -> error "Lexical error: símbolo inválido!"

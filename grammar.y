@@ -15,6 +15,7 @@ import Lexer
     '*'         { TokenTimes }
     '/'         { TokenDiv }
     "&&"        { TokenAnd }
+    "||"        { TokenOr }
     '='         { TokenAssign }
     "=="        { TokenEq }
     true        { TokenTrue }
@@ -33,10 +34,10 @@ import Lexer
     Number      { TokenNumber }
 
 %nonassoc if then else
-%left '+' '-'
-%left '*'
-%left "&&"
 %left "=="
+%left "&&" "||"
+%left '+' '-'
+%left '*' '/'
 
 %% 
 Statement : Exp { [App $1] }
@@ -51,6 +52,7 @@ Exp     : num                        { Num $1 }
         | Exp '*' Exp                { Times $1 $3 }
         | Exp '/' Exp                { Div $1 $3 }
         | Exp "&&" Exp               { And $1 $3 }
+        | Exp "||" Exp               { Or $1 $3 }
         | if Exp then Exp else Exp   { If $2 $4 $6 }
         | '\\' var ':' Type "->" Exp { Lam $2 $4 $6 }
         | '(' Exp ')'                { Paren $2 }

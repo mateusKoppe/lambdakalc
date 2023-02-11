@@ -1,2 +1,2 @@
-let b = 5 - 2
-b
+let a = (\x:Number -> (\y: Number -> x + y))
+a 2
