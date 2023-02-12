@@ -1,1 +1,1 @@
-((\x:Number -> (\y: Number -> x + y)) 2) 3
+let a = (\x:Number -> x + 1)

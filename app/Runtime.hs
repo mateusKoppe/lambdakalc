@@ -1,70 +1,110 @@
 module Runtime where
 
+import Data.Functor.Contravariant (Comparison (Comparison))
 import qualified Data.Map as Map
 import Lexer
-import Data.Functor.Contravariant (Comparison(Comparison))
+import Debug.Trace (trace)
+
+trace' a = trace (show a)  a
 
 type Scope = Map.Map String Expr
 
+type Evaluable = ([Expr], Scope, Expr)
+
 run :: [Expr] -> [Expr]
-run es =
-  snd
-    ( foldl
-        (\(s, es) e -> let (ns, nes) = runScoped s e in (ns, es ++ [nes]))
-        (Map.empty :: Scope, [] :: [Expr])
-        es
-    )
+run es = let (_, _, r) = run' es in r
 
+run' :: [Expr] -> ([Expr], Scope, [Expr])
+run' = foldl run'' ([], Map.empty, [])
 
--- This function needs to be removed
--- Edge case: 1 + let a = 2 will not change scope
-runGet :: Scope -> Expr -> Expr
-runGet s e = snd (runScoped s e)
+run'' :: ([Expr], Scope, [Expr]) -> Expr -> ([Expr], Scope, [Expr])
+run'' (st, sc, es) e = (nst, nsc, es ++ [nes])
+  where
+    (nst, nsc, nes) = runScoped (st, sc, e)
 
-runScoped :: Scope -> Expr -> (Scope, Expr)
-runScoped s (App a) = runScoped s a
+runScoped :: Evaluable -> Evaluable
+runScoped (st, sc, App e) = runScoped (st, sc, e)
+
+-- TODO: Get rid of the wheres, try with monads or something like it
 -- Math
-runScoped s (Plus a b) = eval s (Plus (runGet s a) (runGet s b))
-runScoped s (Less a b) = eval s (Less (runGet s a) (runGet s b))
-runScoped s (Times a b) = eval s (Times (runGet s a) (runGet s b))
-runScoped s (Div a b) = eval s (Div (runGet s a) (runGet s b))
+runScoped (st, sc, Plus a b) = eval (stb, scb, Plus a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
+runScoped (st, sc, Less a b) = eval (stb, scb, Less a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
+runScoped (st, sc, Times a b) = eval (stb, scb, Times a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
+runScoped (st, sc, Div a b) = eval (stb, scb, Div a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
 -- Logic
-runScoped s (And a b) = eval s (And (runGet s a) (runGet s b))
-runScoped s (Or a b) = eval s (Or (runGet s a) (runGet s b))
+runScoped (st, sc, And a b) = eval (stb, scb, And a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
+runScoped (st, sc, Or a b) = eval (stb, scb, Or a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
 -- Comparison
-runScoped s (Eq a b) = eval s (Eq (runGet s a) (runGet s b))
+runScoped (st, sc, Eq a b) = eval (stb, scb, Eq a' b')
+  where
+    (sta, sca, a') = runScoped (st, sc, a)
+    (stb, scb, b') = runScoped (sta, sca, b)
+
 -- Scope
-runScoped s (Var a) = eval s (Var a)
-runScoped s (Let a b) = eval s (Let a (runGet s b))
+runScoped (st, sc, Var a) = eval (st, sc, Var a)
+runScoped (st, sc, Let a b) = eval (sta, sca, Let a b')
+  where
+    (sta, sca, b') = runScoped (st, sc, b)
+
 -- Flow
-runScoped s (If BTrue t _) = runScoped s t
-runScoped s (If BFalse _ a) = runScoped s a
-runScoped s (If e a b) = runScoped s (If (runGet s e) a b)
-runScoped s (Paren a) = runScoped s a
+runScoped (st, sc, If BTrue a _) = runScoped (st, sc, a)
+runScoped (st, sc, If BFalse _ a) = runScoped (st, sc, a)
+
+runScoped (st, sc, If c a b) = runScoped (sta, sca, If c' a b)
+  where
+    (sta, sca, c') = runScoped (st, sc, c)
+
+runScoped (st, sc, Paren a) = runScoped (st, sc, a)
 -- FN
-runScoped s (Lam a t e) = (s, Callable a e)
+runScoped (st, sc, Lam a t e) = (st, sc, Callable a e)
+runScoped (st, sc, Callable a e) = (st, sc, BTrue)
+-- Otherwise
+runScoped (st, sc, x) = (st, sc, x)
 
-runScoped s x = (s, x)
-
-
-eval :: Scope -> Expr -> (Scope, Expr)
+eval :: Evaluable -> Evaluable
 -- Math
-eval s (Plus (Num a) (Num b)) = (s, Num (a + b))
-eval s (Less (Num a) (Num b)) = (s, Num (a - b))
-eval s (Times (Num a) (Num b)) = (s, Num (a * b))
-eval s (Div (Num a) (Num b)) = (s, Num (a / b))
+eval (st, sc, Plus (Num a) (Num b)) = (st, sc, Num (a + b))
+eval (st, sc, Less (Num a) (Num b)) = (st, sc, Num (a - b))
+eval (st, sc, Times (Num a) (Num b)) = (st, sc, Num (a * b))
+eval (st, sc, Div (Num a) (Num b)) = (st, sc, Num (a / b))
 -- Logic
-eval s (And BTrue BTrue) = (s, BTrue)
-eval s (And _ _) = (s, BFalse)
-eval s (Or BFalse BFalse) = (s, BFalse)
-eval s (Or _ _) = (s, BTrue)
+eval (st, sc, And BTrue BTrue) = (st, sc, BTrue)
+eval (st, sc, And _ _) = (st, sc, BFalse)
+eval (st, sc, Or BFalse BFalse) = (st, sc, BFalse)
+eval (st, sc, Or _ _) = (st, sc, BTrue)
 -- Comparasion
-eval s (Eq a b) = (s, if a == b then BTrue else BFalse)
+eval (st, sc, Eq a b) = (st, sc, if a == b then BTrue else BFalse)
 -- Scope
-eval s (Let a b) = (Map.insert a b s, b)
-eval s (Var a) = case v of
-  Just v -> (s, v)
+eval (st, sc, Let a b) = (st, Map.insert a b sc, b)
+eval (st, sc, Var a) = case v of
+  Just v -> (st, sc, v)
   Nothing -> error ("Runtime error: " ++ a ++ " variable does not exist")
   where
-    v = Map.lookup a s
-eval s x = error "Runtime error"
+    v = Map.lookup a sc
+
+-- Otherwise
+eval (st, sc, x) = error "Runtime error"

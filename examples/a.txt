@@ -1,2 +1,2 @@
-let a = (\x:Number -> (\y: Number -> x + y))
-a 2
+let a = 2 + if 1 == let b = 2 then 2 else 3
+let b = b + 1
