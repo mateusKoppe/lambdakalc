@@ -1,1 +1,1 @@
-let a = (\x:Number -> x + 1)
+(\y: Number -> (\x: Number -> x + y) y) 5

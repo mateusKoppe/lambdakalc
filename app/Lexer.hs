@@ -22,12 +22,14 @@ data Expr
   | Or Expr Expr
   | If Expr Expr Expr
   | Var String
-  | Lam String Ty Expr
-  | App Expr
   | Paren Expr
   | Eq Expr Expr
   | Let String Expr
   | Callable String Expr
+  | Lam String Ty Expr
+  | ApplyVar String Expr
+  | ApplyLam String Ty Expr Expr
+  | BreakLine
   deriving (Show, Eq)
 
 data Token
@@ -54,6 +56,7 @@ data Token
   | TokenEq
   | TokenAssign
   | TokenLet
+  | TokenBreakLine
   deriving (Show)
 
 isToken :: Char -> Bool
@@ -74,6 +77,7 @@ lexer ('\\' : cs) = TokenLam : lexer cs
 lexer (':' : cs) = TokenColon : lexer cs
 lexer ('(' : cs) = TokenLParen : lexer cs
 lexer (')' : cs) = TokenRParen : lexer cs
+lexer ('\n' : cs) = TokenBreakLine : lexer cs
 lexer (c : cs)
   | isSpace c = lexer cs
   | isDigit c = lexNum (c : cs)
