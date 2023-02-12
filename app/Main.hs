@@ -1,7 +1,8 @@
 module Main where
 
-import Lexer
-import Parser
-import Runtime
+import Lexer (lexer)
+import Parser (parser)
+import Runtime (run)
+import TypeSystem (typeCheck)
 
-main   = getContents >>= print . run . parser . lexer
+main = getContents >>= print . run . typeCheck . parser . lexer

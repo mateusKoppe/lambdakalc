@@ -30,6 +30,7 @@ executable interpreter
       Lexer,
       Parser,
       Runtime
+      TypeSystem
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:

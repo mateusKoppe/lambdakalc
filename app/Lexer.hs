@@ -2,10 +2,10 @@ module Lexer where
 
 import Data.Char
 
-data Ty
+data Type
   = TBool
   | TNum
-  | TFun Ty Ty
+  | TFun Type Type
   deriving (Show, Eq)
   
 type Statement = [Expr]
@@ -25,10 +25,9 @@ data Expr
   | Paren Expr
   | Eq Expr Expr
   | Let String Expr
-  | Callable String Expr
-  | Lam String Ty Expr
+  | Lam String Type Expr
   | ApplyVar String Expr
-  | ApplyLam String Ty Expr Expr
+  | ApplyLam String Type Expr Expr
   | BreakLine
   deriving (Show, Eq)
 
