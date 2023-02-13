@@ -892,7 +892,7 @@ happyNewToken action sts stk (tk:tks) =
 	TokenRParen -> cont 31;
 	TokenLBracket -> cont 32;
 	TokenRBracket -> cont 33;
-	Comma -> cont 34;
+	TokenComma -> cont 34;
 	TokenBoolean -> cont 35;
 	TokenBreakLine -> cont 36;
 	TokenNumber -> cont 37;

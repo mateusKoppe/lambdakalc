@@ -32,7 +32,7 @@ import Lexer
     ')'         { TokenRParen }
     '['         { TokenLBracket }
     ']'         { TokenRBracket }
-    ','         { Comma }
+    ','         { TokenComma }
     Bool        { TokenBoolean }
     '\n'        { TokenBreakLine }
     Number      { TokenNumber }

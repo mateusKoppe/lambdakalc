@@ -63,7 +63,7 @@ data Token
   | TokenLBracket
   | TokenRBracket
   | TokenNth
-  | Comma
+  | TokenComma
   | TokenBreakLine
   deriving (Show)
 
@@ -87,7 +87,7 @@ lexer ('(' : cs) = TokenLParen : lexer cs
 lexer (')' : cs) = TokenRParen : lexer cs
 lexer ('[' : cs) = TokenLBracket : lexer cs
 lexer (']' : cs) = TokenRBracket : lexer cs
-lexer (',' : cs) = Comma : lexer cs
+lexer (',' : cs) = TokenComma : lexer cs
 lexer ('\n' : cs) = TokenBreakLine : lexer cs
 lexer (c : cs)
   | isSpace c = lexer cs
