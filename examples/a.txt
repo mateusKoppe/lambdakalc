@@ -1,2 +1,0 @@
-let a = (true, 2)
-(\x: (Bool, Number) -> nth (1, x)) a

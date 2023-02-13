@@ -1,0 +1,8 @@
+let a = (true, 5)
+
+nth (0, a)
+nth (1, a)
+
+let shouldAddThen = (\x:(Bool, Number) -> if nth (0, x) then nth (1, x) + 10 else nth(1, x))
+
+shouldAddThen a

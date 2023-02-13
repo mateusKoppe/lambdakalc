@@ -1,0 +1,2 @@
+if 2 > 10 then 20 else 10
+if true && false then true else false

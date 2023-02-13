@@ -34,6 +34,9 @@ runScoped (sc, Div a b) = eval (sc, Div (runImt (sc, a)) (runImt (sc, b)))
 -- Logic
 runScoped (sc, And a b) = eval (sc, And (runImt (sc, a)) (runImt (sc, b)))
 runScoped (sc, Or a b) = eval (sc, Or (runImt (sc, a)) (runImt (sc, b)))
+runScoped (sc, Not a) = eval (sc, Not (runImt (sc, a)))
+runScoped (sc, BgT a b) = eval (sc, BgT (runImt (sc, a)) (runImt (sc, b)))
+runScoped (sc, LsT a b) = eval (sc, LsT (runImt (sc, a)) (runImt (sc, b)))
 -- Comparison
 runScoped (sc, Eq a b) = eval (sc, Eq (runImt (sc, a)) (runImt (sc, b)))
 -- Scope
@@ -74,6 +77,10 @@ eval (sc, And BTrue BTrue) = (sc, BTrue)
 eval (sc, And _ _) = (sc, BFalse)
 eval (sc, Or BFalse BFalse) = (sc, BFalse)
 eval (sc, Or _ _) = (sc, BTrue)
+eval (sc, Not BFalse) = (sc, BTrue)
+eval (sc, Not BTrue) = (sc, BFalse)
+eval (sc, BgT (Num a) (Num b)) = (sc, if a > b then BTrue else BFalse)
+eval (sc, LsT (Num a) (Num b)) = (sc, if a < b then BTrue else BFalse)
 -- Comparasion
 eval (sc, Eq a b) = (sc, if a == b then BTrue else BFalse)
 -- Scope

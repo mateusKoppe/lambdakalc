@@ -16,8 +16,11 @@ import Lexer
     '/'         { TokenDiv }
     "&&"        { TokenAnd }
     "||"        { TokenOr }
+    '!'         { TokenNot }
     '='         { TokenAssign }
     "=="        { TokenEq }
+    '>'         { TokenBT }
+    '<'         { TokenLT }
     true        { TokenTrue }
     false       { TokenFalse }
     if          { TokenIf }
@@ -39,8 +42,9 @@ import Lexer
     nth         { TokenNth }
 
 %nonassoc if then else
-%left "=="
 %left "&&" "||"
+%left '<' '>'
+%left "=="
 %left '+' '-'
 %left '*' '/'
 
@@ -62,6 +66,9 @@ Exp       : num                                     { Num $1 }
           | Exp '/' Exp                             { Div $1 $3 }
           | Exp "&&" Exp                            { And $1 $3 }
           | Exp "||" Exp                            { Or $1 $3 }
+          | Exp '>' Exp                             { BgT $1 $3 }
+          | Exp '<' Exp                             { LsT $1 $3 }
+          | '!' Exp                                 { Not $2 }
           | if Exp then Exp else Exp                { If $2 $4 $6 }
           | '(' Exp ')'                             { Paren $2 }
           | Exp "==" Exp                            { Eq $1 $3 }

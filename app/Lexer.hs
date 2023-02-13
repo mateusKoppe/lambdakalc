@@ -22,6 +22,8 @@ data Expr
   | Div Expr Expr
   | And Expr Expr
   | Or Expr Expr
+  | BgT Expr Expr
+  | LsT Expr Expr
   | If Expr Expr Expr
   | Var String
   | Paren Expr
@@ -33,6 +35,7 @@ data Expr
   | Array [Expr]
   | Tuple [Expr]
   | Nth Double Expr
+  | Not Expr
   | BreakLine
   deriving (Show, Eq)
 
@@ -46,6 +49,9 @@ data Token
   | TokenDiv
   | TokenAnd
   | TokenOr
+  | TokenNot
+  | TokenBT
+  | TokenLT
   | TokenIf
   | TokenThen
   | TokenElse
@@ -75,6 +81,9 @@ lexer [] = []
 lexer ('+' : cs) = TokenPlus : lexer cs
 lexer ('|' : '|': cs) = TokenOr : lexer cs
 lexer ('&' : '&': cs) = TokenAnd : lexer cs
+lexer ('!' : cs) = TokenNot : lexer cs
+lexer ('>' : cs) = TokenBT : lexer cs
+lexer ('<' : cs) = TokenLT : lexer cs
 lexer ('=' : '=': cs) = TokenEq : lexer cs
 lexer ('=': cs) = TokenAssign : lexer cs
 lexer ('-' : '>': cs) = TokenArrow : lexer cs

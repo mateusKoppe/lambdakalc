@@ -1,9 +1,7 @@
 module TypeSystem where
 
-import Control.Exception (TypeError (TypeError))
 import qualified Data.Map as Map
 import Debug.Trace (trace)
-import GHC.IO.Handle.Lock (FileLockingNotSupported (FileLockingNotSupported))
 import Lexer
 
 type TypeScope = Map.Map String Type
@@ -40,6 +38,12 @@ check (sc, BTrue) = (sc, Just TBool)
 check (sc, BFalse) = (sc, Just TBool)
 check (sc, And a b) = boolArguments sc (a, b)
 check (sc, Or a b) = boolArguments sc (a, b)
+check (sc, BgT a b) = numArgumentsBool sc (a, b)
+check (sc, LsT a b) = numArgumentsBool sc (a, b)
+check (sc, Not a) =
+  case checkImt (sc, a) of
+    (Just TBool) -> (sc, Just TBool)
+    x -> error "TypeError: ! (not) should only be used with Boolean type"
 check (sc, Eq a b) =
   let (at, bt) = (checkImt (sc, a), checkImt (sc, b))
    in case (at, bt) of
@@ -105,9 +109,10 @@ check (sc, ApplyLam a ta b e) =
 check (sc, Nth n t) =
   let tt = checkImt (sc, t)
    in case tt of
-        Just (TTuple te) -> if round n < length te
-          then (sc, Just (te !! round n))
-          else error "TypeError: Trid to access invalid element on tuple"
+        Just (TTuple te) ->
+          if round n < length te
+            then (sc, Just (te !! round n))
+            else error "TypeError: Trid to access invalid element on tuple"
         x -> error "TypeError: Invalid arguments for function nth (Number, Tuple)"
 -- Otherwise
 check (sc, Paren e) = check (sc, e)
@@ -125,4 +130,13 @@ numArguments sc (a, b) =
   let (ca, cb) = (checkImt (sc, a), checkImt (sc, b))
    in case (ca, cb) of
         (Just TNum, Just TNum) -> (sc, Just TNum)
-        x -> error "TypeError: +, -, *, / should only be used with Boolean types"
+        x -> error "TypeError: +, -, *, / should only be used with Number types"
+
+
+numArgumentsBool :: TypeScope -> (Expr, Expr) -> (TypeScope, Maybe Type)
+numArgumentsBool sc (a, b) =
+  let (ca, cb) = (checkImt (sc, a), checkImt (sc, b))
+   in case (ca, cb) of
+        (Just TNum, Just TNum) -> (sc, Just TBool)
+        x -> error "TypeError: <, > should only be used with Number types"
+
