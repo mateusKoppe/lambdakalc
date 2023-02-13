@@ -2,7 +2,7 @@ module Runtime where
 
 import qualified Data.Map as Map
 import Debug.Trace (trace)
-import Lexer
+import LangTypes
 
 trace' a = trace (show a) a
 

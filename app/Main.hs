@@ -5,4 +5,4 @@ import Parser (parser)
 import Runtime (run)
 import TypeSystem (typeCheck)
 
-main = getContents >>= print . run .  typeCheck . parser . lexer
+main = getContents >>= print . run . typeCheck . parser . lexer

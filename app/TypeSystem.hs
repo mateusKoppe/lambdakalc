@@ -2,7 +2,7 @@ module TypeSystem where
 
 import qualified Data.Map as Map
 import Debug.Trace (trace)
-import Lexer
+import LangTypes
 
 type TypeScope = Map.Map String Type
 

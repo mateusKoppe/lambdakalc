@@ -1,7 +1,7 @@
 {
 module Parser where 
 
-import Lexer 
+import LangTypes
 }
 
 %name parser 

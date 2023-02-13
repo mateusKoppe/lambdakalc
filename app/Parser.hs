@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -w #-}
 module Parser where 
 
-import Lexer
+import LangTypes
 import qualified Data.Array as Happy_Data_Array
 import qualified Data.Bits as Bits
 import Control.Applicative(Applicative(..))

@@ -1,6 +1,6 @@
 (\x:Number -> if x == 1 then x + 10 else x + 20) 2
 let double = (\x: Number -> x * 2)
-double 10
+double 11
 
 let doubleBiggerThanTen = (\x:Number -> (double x) > 10) 6
 
