@@ -3,6 +3,7 @@ module TypeSystem where
 import Control.Exception (TypeError (TypeError))
 import qualified Data.Map as Map
 import Debug.Trace (trace)
+import GHC.IO.Handle.Lock (FileLockingNotSupported (FileLockingNotSupported))
 import Lexer
 
 type TypeScope = Map.Map String Type
@@ -64,6 +65,33 @@ check (sc, Var a) =
    in case t of
         Just t -> (sc, Just t)
         _ -> error $ "TypeError: Variable " ++ a ++ " not declared on scope"
+-- Fun
+check (sc, Lam a t e) =
+  let nsc = Map.insert a t sc
+      et = checkImt (nsc, e)
+   in case et of
+        Just et -> (nsc, Just (TFun t et))
+check (sc, ApplyVar var e) =
+  let et = checkImt (sc, e)
+      f = Map.lookup var sc
+      r = case (f, et) of
+        (Just (TFun at bt), Just et) ->
+          if at == et
+            then Just bt
+            else error $ "TypeError: Wrong argument type for function " ++ var
+        x -> error $ "Runtime error: function " ++ var ++ " does not exist."
+   in (sc, r)
+check (sc, ApplyLam a ta b e) =
+  let te = checkImt (sc, e)
+      nsc = Map.insert a ta sc
+      tb = checkImt (nsc, b)
+   in case te of
+        Just te ->
+          if te == ta
+            then (sc, tb)
+            else error $ "TypeError: Wrong argument type for " ++ show a
+-- ApplyVar String Expr
+-- ApplyLam String Type Expr Expr
 -- Otherwise
 check (sc, Paren e) = check (sc, e)
 check x = error $ "IntepreterError: Unkown type" ++ show x

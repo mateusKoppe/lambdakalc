@@ -52,9 +52,9 @@ runScoped (sc, ApplyLam var _ b e) =
 runScoped (sc, ApplyVar var e) =
   let val = runImt (sc, e)
       b = Map.lookup var sc
-      r = trace (show b) $ case b of
+      r = case b of
         Just (Lam id _ b) -> runImt (Map.insert id val sc, b)
-        Nothing -> error $ "Runtime error: function " ++ var ++ " does not exist."
+        Nothing -> error $ "Runtime error: function " ++ var ++ " does not exist"
    in (sc, r)
 -- Otherwise
 runScoped x = x

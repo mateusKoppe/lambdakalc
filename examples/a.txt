@@ -1,2 +1,1 @@
-let a = 10
-let b = a == 10
+(\x: Number -> x + 2) 2
