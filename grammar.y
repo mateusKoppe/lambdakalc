@@ -36,6 +36,7 @@ import Lexer
     Bool        { TokenBoolean }
     '\n'        { TokenBreakLine }
     Number      { TokenNumber }
+    nth         { TokenNth }
 
 %nonassoc if then else
 %left "=="
@@ -67,16 +68,24 @@ Exp       : num                                     { Num $1 }
           | Lambda                                  { $1 }
           | var Exp                                 { ApplyVar $1 $2 }
           | '(' '\\' var ':' Type "->" Exp ')' Exp  { ApplyLam $3 $5 $7 $9 }
-          | '[' Array ']'                           { Array $2 }
+          | '[' List ']'                            { Array $2 }
+          | '(' List ')'                            { Tuple $2 }
+          | nth '(' num ','  Exp ')'                { Nth $3 $5 }
 
 Lambda    : '(' '\\' var ':' Type "->" Exp ')'      { Lam $3 $5 $7 }
 
-Array      : Exp                                    { [$1] }
-           | Exp ',' Array                          { $1:$3 }
+List      : Exp                                     { [$1] }
+          | Exp ',' List                            { $1:$3 }
 
 Type      : Bool                                    { TBool }
           | Number                                  { TNum }
           | '(' Type "->" Type ')'                  { TFun $2 $4 }
+          | '[' Type ']'                            { TArray $2 }
+          | '(' TypeList ')'                        { TTuple $2 }
+
+
+TypeList  : Type                                    { [$1] }
+          | Type ',' TypeList                       { $1:$3 }
 
 
 { 

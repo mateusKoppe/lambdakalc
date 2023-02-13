@@ -54,14 +54,17 @@ check (sc, If c a b) =
           (Just TNum, Just TNum) -> (sc, Just TNum)
           _ -> error "TypeError: If requires both options to be the same type"
         _ -> error "TypeError: If requires a Boolean as condition"
--- List
+-- DataStructure
 check (sc, Array es) =
   let ts = map (\x -> let t = checkImt (sc, x) in case t of Just t -> t) es
       ta = head ts
       vd = all (== ta) ts
-    in if vd
-      then (sc, Just (TArray ta))
-      else error "TypeError: All elements in list should have the same type"
+   in if vd
+        then (sc, Just (TArray ta))
+        else error "TypeError: All elements in list should have the same type"
+check (sc, Tuple es) =
+  let ts = map (\x -> let t = checkImt (sc, x) in case t of Just t -> t) es
+   in (sc, Just $ TTuple ts)
 -- Scope
 check (sc, Let a b) =
   let (_, t) = check (sc, b)
@@ -98,6 +101,14 @@ check (sc, ApplyLam a ta b e) =
           if te == ta
             then (sc, tb)
             else error $ "TypeError: Wrong argument type for " ++ show a
+-- Native Funs
+check (sc, Nth n t) =
+  let tt = checkImt (sc, t)
+   in case tt of
+        Just (TTuple te) -> if round n < length te
+          then (sc, Just (te !! round n))
+          else error "TypeError: Trid to access invalid element on tuple"
+        x -> error "TypeError: Invalid arguments for function nth (Number, Tuple)"
 -- Otherwise
 check (sc, Paren e) = check (sc, e)
 check x = error $ "IntepreterError: Unkown type" ++ show x

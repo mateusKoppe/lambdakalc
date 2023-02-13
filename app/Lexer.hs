@@ -7,6 +7,7 @@ data Type
   | TNum
   | TFun Type Type
   | TArray Type
+  | TTuple [Type]
   deriving (Show, Eq)
   
 type Statement = [Expr]
@@ -30,6 +31,8 @@ data Expr
   | ApplyVar String Expr
   | ApplyLam String Type Expr Expr
   | Array [Expr]
+  | Tuple [Expr]
+  | Nth Double Expr
   | BreakLine
   deriving (Show, Eq)
 
@@ -59,6 +62,7 @@ data Token
   | TokenLet
   | TokenLBracket
   | TokenRBracket
+  | TokenNth
   | Comma
   | TokenBreakLine
   deriving (Show)
@@ -103,6 +107,7 @@ lexKW cs = case span isAlpha cs of
   ("if", rest) -> TokenIf : lexer rest
   ("then", rest) -> TokenThen : lexer rest
   ("else", rest) -> TokenElse : lexer rest
+  ("nth", rest) -> TokenNth : lexer rest
   ("Bool", rest) -> TokenBoolean : lexer rest
   ("Number", rest) -> TokenNumber : lexer rest
   (var, rest) -> TokenVar var : lexer rest

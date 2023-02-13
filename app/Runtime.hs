@@ -56,6 +56,10 @@ runScoped (sc, ApplyVar var e) =
         Just (Lam id _ b) -> runImt (Map.insert id val sc, b)
         Nothing -> error $ "Runtime error: function " ++ var ++ " does not exist"
    in (sc, r)
+runScoped (sc, Nth n t) =
+  let tv = runImt (sc, t)
+   in case tv of
+        (Tuple e) -> (sc, e !! round n)
 -- Otherwise
 runScoped x = x
 
