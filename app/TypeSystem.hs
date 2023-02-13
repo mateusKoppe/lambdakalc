@@ -1,58 +1,83 @@
 module TypeSystem where
 
+import Control.Exception (TypeError (TypeError))
+import qualified Data.Map as Map
 import Debug.Trace (trace)
 import Lexer
-import Control.Exception (TypeError(TypeError))
+
+type TypeScope = Map.Map String Type
 
 typeCheck :: [Expr] -> [Expr]
-typeCheck es =
-  map
-    ( \e ->
-        let c = check e
-         in case c of
-              (Just x) -> e
-              _ -> error $ "TypeError: " ++ show e
-    )
-    (filterExprs es)
+typeCheck es = let (_, r) = typeCheck' $ filterExprs es in r
+
+typeCheck' :: [Expr] -> (TypeScope, [Expr])
+typeCheck' = foldl typeCheck'' (Map.empty, [])
+
+typeCheck'' :: (TypeScope, [Expr]) -> Expr -> (TypeScope, [Expr])
+typeCheck'' (sc, es) e = (nsc, es ++ [ne])
+  where
+    (nsc, t) = check (sc, e)
+    ne = case t of
+      (Just x) -> e
+      _ -> error $ "TypeError: " ++ show e
 
 filterExprs :: [Expr] -> [Expr]
 filterExprs = filter (/= BreakLine)
 
-check :: Expr -> Maybe Type
+checkImt :: (TypeScope, Expr) -> Maybe Type
+checkImt (sc, e) = snd $ check (sc, e)
+
+check :: (TypeScope, Expr) -> (TypeScope, Maybe Type)
 -- Num
-check (Num _) = Just TNum
-check (Plus a b) = numArguments (a, b)
-check (Less a b) = numArguments (a, b)
-check (Times a b) = numArguments (a, b)
-check (Div a b) = numArguments (a, b)
+check (sc, Num _) = (sc, Just TNum)
+check (sc, Plus a b) = numArguments sc (a, b)
+check (sc, Less a b) = numArguments sc (a, b)
+check (sc, Times a b) = numArguments sc (a, b)
+check (sc, Div a b) = numArguments sc (a, b)
 -- Bool
-check BTrue = Just TBool
-check BFalse = Just TBool
-check (And a b) = boolArguments (a, b)
-check (Or a b) = boolArguments (a, b)
-check (If c a b) = let (ct, at, bt) = (check c, check a, check b) in
-  case ct of
-    Just TBool -> case (at, bt) of
-      (Just TBool, Just TBool) -> Just TBool
-      (Just TNum, Just TNum) -> Just TNum
-      x -> error "TypeError: If requires both options to be the same type"
-    x -> error "TypeError: If requires a Boolean as condition"
-
-
+check (sc, BTrue) = (sc, Just TBool)
+check (sc, BFalse) = (sc, Just TBool)
+check (sc, And a b) = boolArguments sc (a, b)
+check (sc, Or a b) = boolArguments sc (a, b)
+check (sc, Eq a b) =
+  let (at, bt) = (checkImt (sc, a), checkImt (sc, b))
+   in case (at, bt) of
+        (Just TBool, Just TBool) -> (sc, Just TBool)
+        (Just TNum, Just TNum) -> (sc, Just TBool)
+        _ -> error "TypeError: == requires both options to be the same type"
+check (sc, If c a b) =
+  let (ct, at, bt) = (checkImt (sc, c), checkImt (sc, a), checkImt (sc, b))
+   in case ct of
+        Just TBool -> case (at, bt) of
+          (Just TBool, Just TBool) -> (sc, Just TBool)
+          (Just TNum, Just TNum) -> (sc, Just TNum)
+          _ -> error "TypeError: If requires both options to be the same type"
+        _ -> error "TypeError: If requires a Boolean as condition"
+-- Scope
+check (sc, Let a b) =
+  let (_, t) = check (sc, b)
+   in case t of
+        Just t -> (Map.insert a t sc, Just t)
+        _ -> error $ "TypeError: Variable " ++ a ++ " not declared on scope"
+check (sc, Var a) =
+  let t = Map.lookup a sc
+   in case t of
+        Just t -> (sc, Just t)
+        _ -> error $ "TypeError: Variable " ++ a ++ " not declared on scope"
 -- Otherwise
-check (Paren e) = check e
-check x = error "IntepreterError: Unkown type"
+check (sc, Paren e) = check (sc, e)
+check x = error $ "IntepreterError: Unkown type" ++ show x
 
-boolArguments :: (Expr, Expr) -> Maybe Type
-boolArguments (a, b) =
-  let (ca, cb) = (check a, check b)
+boolArguments :: TypeScope -> (Expr, Expr) -> (TypeScope, Maybe Type)
+boolArguments sc (a, b) =
+  let (ca, cb) = (checkImt (sc, a), checkImt (sc, b))
    in case (ca, cb) of
-        (Just TBool, Just TBool) -> Just TBool
+        (Just TBool, Just TBool) -> (sc, Just TBool)
         x -> error "TypeError: &&, || should only be used with Boolean types"
 
-numArguments :: (Expr, Expr) -> Maybe Type
-numArguments (a, b) =
-  let (ca, cb) = (check a, check b)
+numArguments :: TypeScope -> (Expr, Expr) -> (TypeScope, Maybe Type)
+numArguments sc (a, b) =
+  let (ca, cb) = (checkImt (sc, a), checkImt (sc, b))
    in case (ca, cb) of
-        (Just TNum, Just TNum) -> Just TNum
+        (Just TNum, Just TNum) -> (sc, Just TNum)
         x -> error "TypeError: +, -, *, / should only be used with Boolean types"

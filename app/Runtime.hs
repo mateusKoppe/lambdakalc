@@ -11,10 +11,7 @@ type Scope = Map.Map String Expr
 type Evaluable = (Scope, Expr)
 
 run :: [Expr] -> [Expr]
-run es = let (_, r) = run' $ filterExprs es in r
-
-filterExprs :: [Expr] -> [Expr]
-filterExprs = filter (/= BreakLine)
+run es = let (_, r) = run' es in r
 
 run' :: [Expr] -> (Scope, [Expr])
 run' = foldl run'' (Map.empty, [])
