@@ -30,6 +30,9 @@ import Lexer
     "->"        { TokenArrow }
     '('         { TokenLParen }
     ')'         { TokenRParen }
+    '['         { TokenLBracket }
+    ']'         { TokenRBracket }
+    ','         { Comma }
     Bool        { TokenBoolean }
     '\n'        { TokenBreakLine }
     Number      { TokenNumber }
@@ -64,9 +67,12 @@ Exp       : num                                     { Num $1 }
           | Lambda                                  { $1 }
           | var Exp                                 { ApplyVar $1 $2 }
           | '(' '\\' var ':' Type "->" Exp ')' Exp  { ApplyLam $3 $5 $7 $9 }
+          | '[' Array ']'                           { Array $2 }
 
 Lambda    : '(' '\\' var ':' Type "->" Exp ')'      { Lam $3 $5 $7 }
 
+Array      : Exp                                    { [$1] }
+           | Exp ',' Array                          { $1:$3 }
 
 Type      : Bool                                    { TBool }
           | Number                                  { TNum }

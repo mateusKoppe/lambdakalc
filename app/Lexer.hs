@@ -6,6 +6,7 @@ data Type
   = TBool
   | TNum
   | TFun Type Type
+  | TArray Type
   deriving (Show, Eq)
   
 type Statement = [Expr]
@@ -28,6 +29,7 @@ data Expr
   | Lam String Type Expr
   | ApplyVar String Expr
   | ApplyLam String Type Expr Expr
+  | Array [Expr]
   | BreakLine
   deriving (Show, Eq)
 
@@ -55,6 +57,9 @@ data Token
   | TokenEq
   | TokenAssign
   | TokenLet
+  | TokenLBracket
+  | TokenRBracket
+  | Comma
   | TokenBreakLine
   deriving (Show)
 
@@ -76,6 +81,9 @@ lexer ('\\' : cs) = TokenLam : lexer cs
 lexer (':' : cs) = TokenColon : lexer cs
 lexer ('(' : cs) = TokenLParen : lexer cs
 lexer (')' : cs) = TokenRParen : lexer cs
+lexer ('[' : cs) = TokenLBracket : lexer cs
+lexer (']' : cs) = TokenRBracket : lexer cs
+lexer (',' : cs) = Comma : lexer cs
 lexer ('\n' : cs) = TokenBreakLine : lexer cs
 lexer (c : cs)
   | isSpace c = lexer cs
