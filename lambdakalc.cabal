@@ -1,5 +1,5 @@
 cabal-version:      2.4
-name:               interpreter
+name:               lambdakalc
 version:            0.1.0.0
 
 -- A short (one-line) description of the package.
@@ -21,7 +21,7 @@ maintainer:         mateus.koppe@gmail.com
 -- category:
 extra-source-files: CHANGELOG.md
 
-executable interpreter
+executable lambdakalc
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
@@ -36,7 +36,7 @@ executable interpreter
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        base ^>=4.16.4.0,
+        base ^>=4.15.1.0,
         array ^>=0.5.4.0,
         containers
     hs-source-dirs:   app
