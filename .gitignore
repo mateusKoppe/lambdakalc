@@ -1,3 +1,2 @@
-**/*.hi
-**/*.o
-dist-newstyle
+dist-newstyle/
+app/Parser.hs
